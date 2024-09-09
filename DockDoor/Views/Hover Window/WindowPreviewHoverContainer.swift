@@ -44,6 +44,14 @@ struct WindowPreviewHoverContainer: View {
         return CGPoint(x: maxWidth, y: maxHeight)
     }
 
+    var isVerticalGrid: Bool {
+        (mouseLocation != nil) && (dockPosition == .left || dockPosition == .right)
+    }
+
+    var scrollDirection: Axis.Set {
+        (dockPosition == .bottom || windowSwitcherCoordinator.windowSwitcherActive) ? .vertical : .horizontal
+    }
+
     var gridLayout: [GridItem] {
         let availableWidth = bestGuessMonitor.visibleFrame.width - 30
         let columnWidth = maxWindowDimension.x
@@ -58,8 +66,6 @@ struct WindowPreviewHoverContainer: View {
     }
 
     var body: some View {
-        let isVerticalScroll = dockPosition == .bottom || windowSwitcherCoordinator.windowSwitcherActive
-
         ZStack {
             if let mouseLocation {
                 WindowDismissalContainer(appName: appName, mouseLocation: mouseLocation,
@@ -67,17 +73,8 @@ struct WindowPreviewHoverContainer: View {
             }
 
             ScrollViewReader { scrollProxy in
-                if mouseLocation == nil || dockPosition == .bottom {
-                    ScrollView(!isVerticalScroll ? .horizontal : .vertical, showsIndicators: false) {
-                        LazyVGrid(columns: gridLayout, spacing: 16) {
-                            ForEach(windows.indices, id: \.self) { index in
-                                WindowPreview(windowInfo: windows[index], onTap: onWindowTap, index: index,
-                                              dockPosition: dockPosition, maxWindowDimension: maxWindowDimension,
-                                              bestGuessMonitor: bestGuessMonitor, uniformCardRadius: uniformCardRadius,
-                                              currIndex: windowSwitcherCoordinator.currIndex, windowSwitcherActive: windowSwitcherCoordinator.windowSwitcherActive)
-                                    .id("\(appName)-\(index)")
-                            }
-                        }
+                ScrollView(scrollDirection, showsIndicators: false) {
+                    windowPreviewGrid
                         .padding(14)
                         .onAppear {
                             if !hasAppeared {
@@ -93,37 +90,8 @@ struct WindowPreviewHoverContainer: View {
                         .onChange(of: windows) { _ in
                             runUIUpdates()
                         }
-                    }
-                    .opacity(showWindows ? 1 : 0.8)
-                } else if mouseLocation != nil, dockPosition == .left || dockPosition == .right {
-                    ScrollView(isVerticalScroll ? .horizontal : .vertical, showsIndicators: false) {
-                        LazyHGrid(rows: gridLayout, spacing: 16) {
-                            ForEach(windows.indices, id: \.self) { index in
-                                WindowPreview(windowInfo: windows[index], onTap: onWindowTap, index: index,
-                                              dockPosition: dockPosition, maxWindowDimension: maxWindowDimension,
-                                              bestGuessMonitor: bestGuessMonitor, uniformCardRadius: uniformCardRadius,
-                                              currIndex: windowSwitcherCoordinator.currIndex, windowSwitcherActive: windowSwitcherCoordinator.windowSwitcherActive)
-                                    .id("\(appName)-\(index)")
-                            }
-                        }
-                        .padding(14)
-                        .onAppear {
-                            if !hasAppeared {
-                                hasAppeared.toggle()
-                                runUIUpdates()
-                            }
-                        }
-                        .onChange(of: windowSwitcherCoordinator.currIndex) { newIndex in
-                            withAnimation {
-                                scrollProxy.scrollTo("\(appName)-\(newIndex)", anchor: .center)
-                            }
-                        }
-                        .onChange(of: windows) { _ in
-                            runUIUpdates()
-                        }
-                    }
-                    .opacity(showWindows ? 1 : 0.8)
                 }
+                .opacity(showWindows ? 1 : 0.8)
             }
         }
         .padding(.top, (!windowSwitcherCoordinator.windowSwitcherActive && appNameStyle == .default && showAppName) ? 25 : 0) // Provide space above the window preview for the Embedded (default) title style when hovering over the Dock.
@@ -134,6 +102,30 @@ struct WindowPreviewHoverContainer: View {
         .padding(.top, (!windowSwitcherCoordinator.windowSwitcherActive && appNameStyle == .popover && showAppName) ? 30 : 0) // Provide empty space above the window preview for the Popover title style when hovering over the Dock
         .padding(.all, 24)
         .frame(maxWidth: bestGuessMonitor.visibleFrame.width, maxHeight: bestGuessMonitor.visibleFrame.height)
+    }
+
+    private var windowPreviewGrid: some View {
+        Group {
+            if isVerticalGrid {
+                LazyHGrid(rows: gridLayout, spacing: 16) {
+                    gridContent
+                }
+            } else {
+                LazyVGrid(columns: gridLayout, spacing: 16) {
+                    gridContent
+                }
+            }
+        }
+    }
+
+    private var gridContent: some View {
+        ForEach(windows.indices, id: \.self) { index in
+            WindowPreview(windowInfo: windows[index], onTap: onWindowTap, index: index,
+                          dockPosition: dockPosition, maxWindowDimension: maxWindowDimension,
+                          bestGuessMonitor: bestGuessMonitor, uniformCardRadius: uniformCardRadius,
+                          currIndex: windowSwitcherCoordinator.currIndex, windowSwitcherActive: windowSwitcherCoordinator.windowSwitcherActive)
+                .id("\(appName)-\(index)")
+        }
     }
 
     @ViewBuilder
