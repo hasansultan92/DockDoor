@@ -44,8 +44,21 @@ struct WindowPreviewHoverContainer: View {
         return CGPoint(x: maxWidth, y: maxHeight)
     }
 
+    var gridLayout: [GridItem] {
+        let availableWidth = bestGuessMonitor.visibleFrame.width - 30
+        let columnWidth = maxWindowDimension.x
+        var numberOfColumns = 0
+        let maxNumberOfColumns = Int(availableWidth / columnWidth)
+        if windows.count < maxNumberOfColumns {
+            numberOfColumns = windows.count
+        } else {
+            numberOfColumns = maxNumberOfColumns
+        }
+        return Array(repeating: GridItem(.flexible(), spacing: 16), count: numberOfColumns)
+    }
+
     var body: some View {
-        let orientationIsHorizontal = dockPosition == .bottom || windowSwitcherCoordinator.windowSwitcherActive
+        let isVerticalScroll = dockPosition == .bottom || windowSwitcherCoordinator.windowSwitcherActive
 
         ZStack {
             if let mouseLocation {
@@ -54,8 +67,8 @@ struct WindowPreviewHoverContainer: View {
             }
 
             ScrollViewReader { scrollProxy in
-                ScrollView(orientationIsHorizontal ? .horizontal : .vertical, showsIndicators: false) {
-                    DynStack(direction: orientationIsHorizontal ? .horizontal : .vertical, spacing: 16) {
+                ScrollView(isVerticalScroll ? .horizontal : .vertical, showsIndicators: false) {
+                    LazyVGrid(columns: gridLayout, spacing: 16) {
                         ForEach(windows.indices, id: \.self) { index in
                             WindowPreview(windowInfo: windows[index], onTap: onWindowTap, index: index,
                                           dockPosition: dockPosition, maxWindowDimension: maxWindowDimension,
