@@ -20,10 +20,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     private var sharedPreviewWindowCoordinator: SharedPreviewWindowCoordinator?
     private var keybindHelper: KeybindHelper?
     private var statusBarItem: NSStatusItem?
-
-    #if !APPSTORE_BUILD
-        private var updaterController: SPUStandardUpdaterController
-    #endif
+    private var updaterController: SPUStandardUpdaterController
 
     // settings
     private var firstTimeWindow: NSWindow?
@@ -33,27 +30,30 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             AppearanceSettingsViewController(),
             WindowSwitcherSettingsViewController(),
             PermissionsSettingsViewController(),
+            HelpSettingsViewController(),
+            UpdatesSettingsViewController(updater: updaterController.updater),
         ]
 
-        #if !APPSTORE_BUILD
-            panes.append(UpdatesSettingsViewController(updater: updaterController.updater))
-        #endif
+        let controller = SettingsWindowController(panes: panes)
+        controller.window?.delegate = self.settingsWindowControllerDelegate
 
-        return SettingsWindowController(panes: panes)
+        if let window = controller.window {
+            window.styleMask.insert(.resizable)
+
+            if let zoomButton = window.standardWindowButton(.zoomButton) {
+                zoomButton.isEnabled = true
+            }
+        }
+
+        return controller
     }()
 
     private let settingsWindowControllerDelegate = SettingsWindowControllerDelegate()
 
     override init() {
-        #if !APPSTORE_BUILD
-            updaterController = SPUStandardUpdaterController(startingUpdater: true, updaterDelegate: nil, userDriverDelegate: nil)
-            updaterController.startUpdater()
-        #endif
+        updaterController = SPUStandardUpdaterController(startingUpdater: true, updaterDelegate: nil, userDriverDelegate: nil)
+        updaterController.startUpdater()
         super.init()
-
-        if let zoomButton = settingsWindowController.window?.standardWindowButton(.zoomButton) {
-            zoomButton.isEnabled = false
-        }
 
         settingsWindowController.window?.delegate = settingsWindowControllerDelegate
     }

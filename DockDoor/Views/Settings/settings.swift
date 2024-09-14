@@ -6,10 +6,9 @@ extension Settings.PaneIdentifier {
     static let general = Self("general")
     static let appearance = Self("appearance")
     static let permissions = Self("permissions")
-    #if !APPSTORE_BUILD
-        static let updates = Self("updates")
-    #endif
+    static let updates = Self("updates")
     static let alttab = Self("alttab")
+    static let help = Self("help")
 }
 
 let GeneralSettingsViewController: () -> SettingsPane = {
@@ -60,16 +59,26 @@ let PermissionsSettingsViewController: () -> SettingsPane = {
     return Settings.PaneHostingController(pane: paneView)
 }
 
-#if !APPSTORE_BUILD
-    func UpdatesSettingsViewController(updater: SPUUpdater) -> SettingsPane {
-        let paneView = Settings.Pane(
-            identifier: .updates,
-            title: String(localized: "Updates", comment: "Settings tab title"),
-            toolbarIcon: NSImage(systemSymbolName: "arrow.triangle.2.circlepath", accessibilityDescription: String(localized: "Update settings"))!
-        ) {
-            UpdateSettingsView(updater: updater)
-        }
-
-        return Settings.PaneHostingController(pane: paneView)
+func UpdatesSettingsViewController(updater: SPUUpdater) -> SettingsPane {
+    let paneView = Settings.Pane(
+        identifier: .updates,
+        title: String(localized: "Updates", comment: "Settings tab title"),
+        toolbarIcon: NSImage(systemSymbolName: "arrow.triangle.2.circlepath", accessibilityDescription: String(localized: "Update settings"))!
+    ) {
+        UpdateSettingsView(updater: updater)
     }
-#endif
+
+    return Settings.PaneHostingController(pane: paneView)
+}
+
+let HelpSettingsViewController: () -> SettingsPane = {
+    let paneView = Settings.Pane(
+        identifier: .help,
+        title: String(localized: "Help", comment: "Settings tab title"),
+        toolbarIcon: NSImage(systemSymbolName: "questionmark.circle.fill", accessibilityDescription: String(localized: "Help and questions settings"))!
+    ) {
+        HelpSettingsView()
+    }
+
+    return Settings.PaneHostingController(pane: paneView)
+}
