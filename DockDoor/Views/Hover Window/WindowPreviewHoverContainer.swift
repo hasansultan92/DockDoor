@@ -45,31 +45,6 @@ struct WindowPreviewHoverContainer: View {
         return CGPoint(x: maxWidth, y: maxHeight)
     }
 
-    var isVerticalGrid: Bool {
-        if mouseLocation != nil, dockPosition == .left || dockPosition == .right {
-            true
-        } else {
-            false
-        }
-    }
-
-    var scrollDirection: Axis.Set {
-        .vertical
-    }
-
-    var gridLayout: [GridItem] {
-        let availablePixels = isVerticalGrid ? bestGuessMonitor.visibleFrame.height - 15 : bestGuessMonitor.visibleFrame.width - 15
-        let maxColumnWidth = maxWindowDimension.x
-        var numberOfColumns = 0
-        let maxNumberOfColumns = Int(availablePixels / maxColumnWidth)
-        if windows.count < maxNumberOfColumns {
-            numberOfColumns = windows.count
-        } else {
-            numberOfColumns = maxNumberOfColumns
-        }
-        return Array(repeating: GridItem(.flexible(), spacing: 16), count: numberOfColumns)
-    }
-
     var body: some View {
         ZStack {
             if let mouseLocation {
@@ -78,7 +53,7 @@ struct WindowPreviewHoverContainer: View {
             }
 
             ScrollViewReader { scrollProxy in
-                ScrollView(scrollDirection, showsIndicators: false) {
+                ScrollView(.vertical, showsIndicators: false) {
                     windowPreviewGrid
                         .padding(14)
                         .onAppear {
@@ -111,12 +86,12 @@ struct WindowPreviewHoverContainer: View {
 
     private var windowPreviewGrid: some View {
         Group {
-            if isVerticalGrid {
-                LazyHGrid(rows: gridLayout, spacing: 16) {
+            if GridLayoutVertical() {
+                LazyHGrid(rows: calculateGridInfo(), spacing: 16) {
                     gridContent
                 }
             } else {
-                LazyVGrid(columns: gridLayout, spacing: 16) {
+                LazyVGrid(columns: calculateGridInfo(), spacing: 16) {
                     gridContent
                 }
             }
@@ -251,5 +226,31 @@ struct WindowPreviewHoverContainer: View {
                 appIcon = icon
             }
         }
+    }
+
+    private func GridLayoutVertical() -> Bool {
+        var isVerticalGrid = false
+        if windowSwitcherCoordinator.windowSwitcherActive {
+            isVerticalGrid = false
+        } else if mouseLocation != nil, dockPosition == .left || dockPosition == .right {
+            isVerticalGrid = true
+        } else if mouseLocation != nil, dockPosition == .bottom || dockPosition == .top {
+            isVerticalGrid = false
+        }
+        return isVerticalGrid
+    }
+
+    private func calculateGridInfo() -> [GridItem] {
+        let isVerticalGrid = GridLayoutVertical()
+        let availablePixels = isVerticalGrid ? bestGuessMonitor.visibleFrame.height - 15 : bestGuessMonitor.visibleFrame.width - 15
+        let maxColumnWidth = isVerticalGrid ? maxWindowDimension.y : maxWindowDimension.x
+        var numberOfColumns = 0
+        let maxNumberOfColumns = Int(availablePixels / maxColumnWidth)
+        if windows.count < maxNumberOfColumns {
+            numberOfColumns = windows.count
+        } else {
+            numberOfColumns = maxNumberOfColumns
+        }
+        return Array(repeating: GridItem(.flexible(), spacing: 16), count: numberOfColumns)
     }
 }
