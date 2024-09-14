@@ -24,6 +24,7 @@ struct WindowPreviewHoverContainer: View {
         let thickness = SharedPreviewWindowCoordinator.shared.windowSize.height
         var maxWidth: CGFloat = 300
         var maxHeight: CGFloat = 300
+        let isHorizontal = dockPosition == .bottom || windowSwitcherCoordinator.windowSwitcherActive
 
         for window in windows {
             if let cgImage = window.image {
@@ -31,7 +32,7 @@ struct WindowPreviewHoverContainer: View {
                 let widthBasedOnHeight = (cgSize.width * thickness) / cgSize.height
                 let heightBasedOnWidth = (cgSize.height * thickness) / cgSize.width
 
-                if dockPosition == .bottom || windowSwitcherCoordinator.windowSwitcherActive {
+                if isHorizontal {
                     maxWidth = max(maxWidth, widthBasedOnHeight)
                     maxHeight = thickness
                 } else {
@@ -45,18 +46,22 @@ struct WindowPreviewHoverContainer: View {
     }
 
     var isVerticalGrid: Bool {
-        (mouseLocation != nil) && (dockPosition == .left || dockPosition == .right)
+        if mouseLocation != nil, dockPosition == .left || dockPosition == .right {
+            true
+        } else {
+            false
+        }
     }
 
     var scrollDirection: Axis.Set {
-        (dockPosition == .bottom || windowSwitcherCoordinator.windowSwitcherActive) ? .vertical : .horizontal
+        .vertical
     }
 
     var gridLayout: [GridItem] {
-        let availableWidth = bestGuessMonitor.visibleFrame.width - 30
-        let columnWidth = maxWindowDimension.x
+        let availablePixels = isVerticalGrid ? bestGuessMonitor.visibleFrame.height - 15 : bestGuessMonitor.visibleFrame.width - 15
+        let maxColumnWidth = maxWindowDimension.x
         var numberOfColumns = 0
-        let maxNumberOfColumns = Int(availableWidth / columnWidth)
+        let maxNumberOfColumns = Int(availablePixels / maxColumnWidth)
         if windows.count < maxNumberOfColumns {
             numberOfColumns = windows.count
         } else {
