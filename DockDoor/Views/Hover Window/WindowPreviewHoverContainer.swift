@@ -81,17 +81,17 @@ struct WindowPreviewHoverContainer: View {
         }
         .padding(.top, (!windowSwitcherCoordinator.windowSwitcherActive && appNameStyle == .popover && showAppName) ? 30 : 0) // Provide empty space above the window preview for the Popover title style when hovering over the Dock
         .padding(.all, 24)
-        .frame(maxWidth: bestGuessMonitor.visibleFrame.width, maxHeight: bestGuessMonitor.visibleFrame.height)
+        .frame(maxWidth: bestGuessMonitor.visibleFrame.width - 15, maxHeight: bestGuessMonitor.visibleFrame.height - 15)
     }
 
     private var windowPreviewGrid: some View {
         Group {
             if GridLayoutVertical() {
-                LazyHGrid(rows: calculateGridInfo(), spacing: 16) {
+                LazyHGrid(rows: calculateGridInfo(), spacing: 25) {
                     gridContent
                 }
             } else {
-                LazyVGrid(columns: calculateGridInfo(), spacing: 16) {
+                LazyVGrid(columns: calculateGridInfo(), spacing: 25) {
                     gridContent
                 }
             }
@@ -100,10 +100,15 @@ struct WindowPreviewHoverContainer: View {
 
     private var gridContent: some View {
         ForEach(windows.indices, id: \.self) { index in
-            WindowPreview(windowInfo: windows[index], onTap: onWindowTap, index: index,
-                          dockPosition: dockPosition, maxWindowDimension: maxWindowDimension,
-                          bestGuessMonitor: bestGuessMonitor, uniformCardRadius: uniformCardRadius,
-                          currIndex: windowSwitcherCoordinator.currIndex, windowSwitcherActive: windowSwitcherCoordinator.windowSwitcherActive)
+            WindowPreview(windowInfo: windows[index],
+                          onTap: onWindowTap,
+                          index: index,
+                          dockPosition: dockPosition,
+                          maxWindowDimension: maxWindowDimension,
+                          bestGuessMonitor: bestGuessMonitor,
+                          uniformCardRadius: uniformCardRadius,
+                          currIndex: windowSwitcherCoordinator.currIndex,
+                          windowSwitcherActive: windowSwitcherCoordinator.windowSwitcherActive)
                 .id("\(appName)-\(index)")
         }
     }
