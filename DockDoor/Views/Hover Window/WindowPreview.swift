@@ -60,7 +60,7 @@ struct WindowPreview: View {
                     .overlay(isSelected ? CustomizableFluidGradientView().opacity(0.125) : nil)
             }
         }
-        .frame(maxWidth: calculatedSize.width, maxHeight: calculatedSize.height, alignment: .leading)
+        .frame(width: calculatedSize.width, height: calculatedSize.height, alignment: .leading)
     }
 
     var body: some View {
