@@ -68,11 +68,11 @@ struct WindowPreviewHoverContainer: View {
             ScrollView(.vertical, showsIndicators: false) {
                 Group {
                     if GridLayoutVertical() {
-                        LazyHGrid(rows: calculateGridInfo(), spacing: 25) {
+                        LazyHGrid(rows: calculateGridInfo(), spacing: 15) {
                             gridContent
                         }
                     } else {
-                        LazyVGrid(columns: calculateGridInfo(), spacing: 25) {
+                        LazyVGrid(columns: calculateGridInfo(), spacing: 15) {
                             gridContent
                         }
                     }
@@ -248,13 +248,14 @@ struct WindowPreviewHoverContainer: View {
         let availablePixels = isVerticalGrid ? bestGuessMonitor.visibleFrame.height - 15 : bestGuessMonitor.visibleFrame.width - 15
         let maxColumnWidth = isVerticalGrid ? maxWindowDimension.y : maxWindowDimension.x
         var numberOfColumns = 0
+        let spacing: CGFloat = 10
         let maxNumberOfColumns = Int(availablePixels / maxColumnWidth)
         if windows.count < maxNumberOfColumns {
             numberOfColumns = windows.count
         } else {
             numberOfColumns = maxNumberOfColumns
         }
-        return mouseLocation == nil ? Array(repeating: GridItem(.fixed(maxColumnWidth), spacing: 16), count: numberOfColumns) :
-            Array(repeating: GridItem(.flexible(), spacing: 16), count: numberOfColumns)
+        return mouseLocation == nil ? Array(repeating: GridItem(.fixed(maxColumnWidth), spacing: spacing), count: numberOfColumns) :
+            Array(repeating: GridItem(.flexible(), spacing: spacing), count: numberOfColumns)
     }
 }

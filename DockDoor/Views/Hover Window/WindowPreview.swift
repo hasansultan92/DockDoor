@@ -208,7 +208,7 @@ struct WindowPreview: View {
 
             TheMarquee(width: width, secsBeforeLooping: 1, speedPtsPerSec: 20, nonMovingAlignment: .leading) {
                 Text(windowInfo.windowName ?? "Hidden window")
-                    .font(.system(size: 12, weight: .medium))
+                    .font(.system(size: 14, weight: .bold))
                     .foregroundStyle(.primary)
             }
             .padding(4)
